@@ -1,0 +1,24 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="emasGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e3c583"/>
+      <stop offset="100%" stop-color="#b5893f"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#emasGrad)">
+    <!-- Kelopak tengah -->
+    <path d="M32 6 C36 16 36 26 32 34 C28 26 28 16 32 6 Z"/>
+    <!-- Kelopak kiri atas -->
+    <path d="M32 34 C24 30 16 24 12 15 C22 15 30 21 32 34 Z"/>
+    <!-- Kelopak kanan atas -->
+    <path d="M32 34 C40 30 48 24 52 15 C42 15 34 21 32 34 Z"/>
+    <!-- Kelopak kiri bawah -->
+    <path d="M32 34 C23 36 14 40 8 48 C18 51 28 47 32 34 Z"/>
+    <!-- Kelopak kanan bawah -->
+    <path d="M32 34 C41 36 50 40 56 48 C46 51 36 47 32 34 Z"/>
+    <!-- Batang -->
+    <path d="M32 34 L32 58" stroke="url(#emasGrad)" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <!-- Pusat -->
+    <circle cx="32" cy="34" r="4.5"/>
+  </g>
+</svg>
