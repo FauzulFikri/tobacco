@@ -26,6 +26,11 @@ class Produk extends Model
         return $this->hasMany(DetailTransaksi::class);
     }
 
+    public function stokMutasis()
+    {
+        return $this->hasMany(StokMutasi::class);
+    }
+
     public function scopeStokMenipis($query)
     {
         return $query->whereColumn('stok', '<=', 'stok_minimum');

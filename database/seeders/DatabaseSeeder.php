@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Kategori;
 use App\Models\Produk;
+use App\Models\StokMutasi;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -58,5 +59,19 @@ class DatabaseSeeder extends Seeder
             ['kode_produk' => 'PRD005', 'nama_produk' => 'Tembakau 50gr', 'kategori_id' => $tembakau->id, 'harga' => 15000, 'stok' => 150, 'stok_minimum' => 20, 'created_at' => now(), 'updated_at' => now()],
             ['kode_produk' => 'PRD006', 'nama_produk' => 'Kertas Paper', 'kategori_id' => $aksesoris->id, 'harga' => 5000, 'stok' => 200, 'stok_minimum' => 20, 'created_at' => now(), 'updated_at' => now()],
         ]);
+
+        // Catat stok awal produk contoh di kartu stok
+        foreach (Produk::all() as $produk) {
+            StokMutasi::create([
+                'produk_id' => $produk->id,
+                'nama_produk' => $produk->nama_produk,
+                'jenis' => 'masuk',
+                'sumber' => 'stok_awal',
+                'qty' => $produk->stok,
+                'stok_sebelum' => 0,
+                'stok_sesudah' => $produk->stok,
+                'keterangan' => 'Stok awal (data contoh)',
+            ]);
+        }
     }
 }

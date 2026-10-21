@@ -7,6 +7,7 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\StokController;
 use App\Http\Controllers\TransaksiController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin,kasir')->group(function () {
         Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
         Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
+        Route::get('/transaksi/riwayat', [TransaksiController::class, 'riwayat'])->name('transaksi.riwayat');
         Route::get('/transaksi/{transaksi}/nota', [TransaksiController::class, 'nota'])->name('transaksi.nota');
     });
 
@@ -43,12 +45,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
         Route::put('/kategori/{kategori}', [KategoriController::class, 'update'])->name('kategori.update');
         Route::delete('/kategori/{kategori}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
+
+        // Stok barang: pencatatan barang masuk & keluar
+        Route::get('/stok', [StokController::class, 'index'])->name('stok.index');
+        Route::post('/stok', [StokController::class, 'store'])->name('stok.store');
     });
 
     // Laporan: admin & pimpinan
     Route::middleware('role:admin,pimpinan')->group(function () {
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export-pdf');
+        Route::get('/laporan/stok', [LaporanController::class, 'stok'])->name('laporan.stok');
+        Route::get('/laporan/stok/export-pdf', [LaporanController::class, 'stokPdf'])->name('laporan.stok.pdf');
+        Route::get('/laporan/produk-terjual', [LaporanController::class, 'produkTerjual'])->name('laporan.produk-terjual');
+        Route::get('/laporan/produk-terjual/export-pdf', [LaporanController::class, 'produkTerjualPdf'])->name('laporan.produk-terjual.pdf');
     });
 
     // Pengguna: khusus admin

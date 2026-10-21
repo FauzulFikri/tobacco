@@ -25,8 +25,11 @@
                 <i class="bi bi-grid-1x2"></i> Dashboard
             </a>
             @if(in_array(auth()->user()->role, ['admin','kasir']))
-            <a href="{{ route('transaksi.index') }}" class="nav-link {{ request()->routeIs('transaksi.*') ? 'active' : '' }}">
+            <a href="{{ route('transaksi.index') }}" class="nav-link {{ request()->routeIs('transaksi.index', 'transaksi.nota') ? 'active' : '' }}">
                 <i class="bi bi-cart3"></i> Transaksi
+            </a>
+            <a href="{{ route('transaksi.riwayat') }}" class="nav-link {{ request()->routeIs('transaksi.riwayat') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> Riwayat Transaksi
             </a>
             @endif
             @if(auth()->user()->role === 'admin')
@@ -36,10 +39,13 @@
             <a href="{{ route('kategori.index') }}" class="nav-link {{ request()->routeIs('kategori.*') ? 'active' : '' }}">
                 <i class="bi bi-tags"></i> Kategori
             </a>
+            <a href="{{ route('stok.index') }}" class="nav-link {{ request()->routeIs('stok.*') ? 'active' : '' }}">
+                <i class="bi bi-arrow-left-right"></i> Stok Barang
+            </a>
             @endif
             @if(in_array(auth()->user()->role, ['admin','pimpinan']))
             <a href="{{ route('laporan.index') }}" class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
-                <i class="bi bi-bar-chart"></i> Laporan Penjualan
+                <i class="bi bi-bar-chart"></i> Laporan
             </a>
             @endif
             @if(auth()->user()->role === 'admin')

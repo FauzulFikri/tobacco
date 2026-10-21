@@ -12,6 +12,9 @@
                     <option value="{{ $kat->id }}">{{ $kat->nama_kategori }}</option>
                 @endforeach
             </select>
+            <a href="{{ route('transaksi.riwayat') }}" class="btn btn-outline-secondary ms-auto">
+                <i class="bi bi-clock-history"></i> Riwayat
+            </a>
         </div>
 
         <div class="row g-3" id="daftarProduk">

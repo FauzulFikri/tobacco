@@ -76,7 +76,8 @@
                                         </select>
                                     </div>
                                     <div class="mb-2"><label class="form-label small">Harga</label><input type="number" class="form-control" name="harga" value="{{ $produk->harga }}" required></div>
-                                    <div class="mb-2"><label class="form-label small">Stok</label><input type="number" class="form-control" name="stok" value="{{ $produk->stok }}" required></div>
+                                    <div class="mb-2"><label class="form-label small">Stok</label><input type="number" class="form-control" value="{{ $produk->stok }}" disabled>
+                                        <div class="form-text">Stok diubah lewat menu <a href="{{ route('stok.index') }}">Stok Barang</a> agar riwayat masuk/keluarnya tercatat.</div></div>
                                     <div class="mb-2"><label class="form-label small">Stok Minimum</label><input type="number" class="form-control" name="stok_minimum" value="{{ $produk->stok_minimum }}"></div>
                                 </div>
                                 <div class="modal-footer"><button type="submit" class="btn btn-emas w-100">Simpan</button></div>
@@ -119,7 +120,7 @@
                         </select>
                     </div>
                     <div class="mb-2"><label class="form-label small">Harga</label><input type="number" class="form-control" name="harga" required></div>
-                    <div class="mb-2"><label class="form-label small">Stok</label><input type="number" class="form-control" name="stok" required></div>
+                    <div class="mb-2"><label class="form-label small">Stok Awal</label><input type="number" class="form-control" name="stok" min="0" value="0" required></div>
                     <div class="mb-2"><label class="form-label small">Stok Minimum</label><input type="number" class="form-control" name="stok_minimum" value="10"></div>
                 </div>
                 <div class="modal-footer"><button type="submit" class="btn btn-emas w-100">Simpan</button></div>

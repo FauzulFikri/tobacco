@@ -2,6 +2,8 @@
 @section('title', 'Laporan Penjualan')
 
 @section('content')
+@include('laporan._tabs')
+
 <div class="card-panel mb-3">
     <form method="GET" class="d-flex flex-wrap align-items-end gap-2">
         <div>

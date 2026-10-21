@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\DetailTransaksi;
 use App\Models\Kategori;
 use App\Models\Produk;
+use App\Models\StokMutasi;
 use App\Models\Transaksi;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -110,7 +113,15 @@ class TransaksiController extends Controller
                     'subtotal' => $data['subtotal'],
                 ]);
 
-                $data['produk']->decrement('stok', $data['qty']);
+                // Kurangi stok + catat sebagai barang keluar (penjualan)
+                StokMutasi::catat(
+                    $data['produk'],
+                    'keluar',
+                    $data['qty'],
+                    'penjualan',
+                    'Penjualan ' . $transaksi->no_transaksi,
+                    $transaksi->id,
+                );
             }
 
             return $transaksi;
@@ -121,6 +132,43 @@ class TransaksiController extends Controller
             'no_transaksi' => $transaksi->no_transaksi,
             'redirect' => route('transaksi.nota', $transaksi->id),
         ]);
+    }
+
+    /**
+     * Riwayat transaksi dengan pencarian & filter periode (admin & kasir).
+     */
+    public function riwayat(Request $request)
+    {
+        $dari = $request->get('dari', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $sampai = $request->get('sampai', Carbon::now()->format('Y-m-d'));
+
+        $query = Transaksi::with(['user', 'detail'])
+            ->whereBetween('created_at', [Carbon::parse($dari)->startOfDay(), Carbon::parse($sampai)->endOfDay()]);
+
+        if ($cari = trim((string) $request->get('cari'))) {
+            $query->where(function ($q) use ($cari) {
+                $q->where('no_transaksi', 'like', "%{$cari}%")
+                    ->orWhereHas('detail', fn ($d) => $d->where('nama_produk', 'like', "%{$cari}%"));
+            });
+        }
+        if ($metode = $request->get('metode')) {
+            $query->where('metode_pembayaran', $metode);
+        }
+        if ($kasir = $request->get('kasir')) {
+            $query->where('user_id', $kasir);
+        }
+
+        $totalTransaksi = (clone $query)->count();
+        $totalPenjualan = (int) (clone $query)->sum('total');
+        $perMetode = (clone $query)->selectRaw('metode_pembayaran, SUM(total) as total')
+            ->groupBy('metode_pembayaran')->pluck('total', 'metode_pembayaran');
+
+        $transaksis = $query->latest()->latest('id')->paginate(15)->withQueryString();
+        $kasirs = User::whereIn('role', ['admin', 'kasir'])->orderBy('name')->get();
+
+        return view('transaksi.riwayat', compact(
+            'transaksis', 'kasirs', 'dari', 'sampai', 'totalTransaksi', 'totalPenjualan', 'perMetode'
+        ));
     }
 
     public function nota(Transaksi $transaksi)
