@@ -10,6 +10,7 @@
         th { background: #f2f2f2; }
         .text-end { text-align: right; }
         .text-center { text-align: center; }
+        .ringkasan { width: auto; }
         .ringkasan td { border: none; padding: 3px 8px; }
         tfoot td { font-weight: bold; background: #fafafa; }
     </style>

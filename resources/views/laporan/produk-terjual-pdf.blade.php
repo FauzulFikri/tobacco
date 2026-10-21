@@ -9,6 +9,7 @@
         th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
         th { background: #f2f2f2; }
         .text-end { text-align: right; }
+        .ringkasan { width: auto; }
         .ringkasan td { border: none; padding: 4px 8px; }
     </style>
 </head>
