@@ -64,6 +64,10 @@ class StokController extends Controller
 
         $label = $data['jenis'] === 'masuk' ? 'Barang masuk' : 'Barang keluar';
 
+        if ($data['jenis'] === 'keluar' && ($menipis = Produk::yangMenipis([$produk->id]))) {
+            session()->flash('peringatan_stok', $menipis);
+        }
+
         return back()->with('success', "{$label} {$produk->nama_produk} sebanyak {$data['qty']} berhasil dicatat.");
     }
 }

@@ -23,7 +23,7 @@
                     <td class="text-center">
                         <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#modalEditUser{{ $p->id }}"><i class="bi bi-pencil"></i></button>
                         @if($p->id !== auth()->id())
-                        <form action="{{ route('pengguna.destroy', $p) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus pengguna ini?')">
+                        <form action="{{ route('pengguna.destroy', $p) }}" method="POST" class="d-inline" data-konfirmasi-hapus="Pengguna {{ $p->name }} ({{ $p->username }})">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
                         </form>

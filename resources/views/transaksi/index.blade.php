@@ -107,9 +107,9 @@ function tambahKeKeranjang(id, nama, harga, stokMax) {
     const existing = keranjang.find(k => k.produk_id === id);
     if (existing) {
         if (existing.qty < stokMax) existing.qty++;
-        else alert('Stok tidak mencukupi.');
+        else notif.waspada(`Stok ${nama} hanya ${stokMax}.`, 'Stok tidak mencukupi');
     } else {
-        if (stokMax < 1) { alert('Stok habis.'); return; }
+        if (stokMax < 1) { notif.waspada(`${nama} sedang kosong.`, 'Stok habis'); return; }
         keranjang.push({ produk_id: id, nama, harga, qty: 1, stokMax });
     }
     renderKeranjang();
@@ -123,12 +123,23 @@ function ubahQty(id, delta) {
         keranjang = keranjang.filter(k => k.produk_id !== id);
     } else if (item.qty > item.stokMax) {
         item.qty = item.stokMax;
-        alert('Stok tidak mencukupi.');
+        notif.waspada(`Stok ${item.nama} hanya ${item.stokMax}.`, 'Stok tidak mencukupi');
     }
     renderKeranjang();
 }
 
 function kosongkanKeranjang() {
+    if (keranjang.length === 0) return;
+    notif.konfirmasi({
+        judul: 'Kosongkan keranjang?',
+        teks: `${keranjang.length} produk di keranjang akan dibatalkan.`,
+        tombol: 'Ya, kosongkan',
+        ikon: 'warning',
+        bahaya: true,
+    }).then(ya => { if (ya) resetKeranjang(); });
+}
+
+function resetKeranjang() {
     keranjang = [];
     document.getElementById('inputDiskon').value = 0;
     document.getElementById('inputBayar').value = '';
@@ -193,20 +204,43 @@ function formatRupiah(angka) {
 }
 
 function bayarTransaksi() {
-    if (keranjang.length === 0) { alert('Keranjang masih kosong.'); return; }
+    if (keranjang.length === 0) { notif.waspada('Pilih produk dulu sebelum membayar.', 'Keranjang masih kosong'); return; }
 
     const subtotal = keranjang.reduce((s, k) => s + (k.harga * k.qty), 0);
     const diskonPersen = parseFloat(document.getElementById('inputDiskon').value) || 0;
     const total = subtotal - Math.round(subtotal * diskonPersen / 100);
     const bayar = metodePembayaran === 'cash' ? (parseFloat(document.getElementById('inputBayar').value) || 0) : total;
 
-    if (metodePembayaran === 'cash' && bayar < total) { alert('Uang bayar kurang dari total.'); return; }
+    if (metodePembayaran === 'cash' && bayar < total) {
+        notif.peringatan(`Total belanja Rp ${formatRupiah(total)}, uang yang dimasukkan baru Rp ${formatRupiah(bayar)}.`, 'Uang bayar kurang');
+        return;
+    }
+
+    const labelMetode = { cash: 'Tunai', transfer: 'Transfer', qris: 'QRIS' }[metodePembayaran];
+    const jumlahItem = keranjang.reduce((s, k) => s + k.qty, 0);
+    notif.konfirmasi({
+        judul: 'Proses pembayaran?',
+        teks: `<div class="text-start mx-auto" style="max-width:260px">
+                 <div class="d-flex justify-content-between"><span>Jumlah barang</span><b>${jumlahItem} item</b></div>
+                 <div class="d-flex justify-content-between"><span>Metode</span><b>${labelMetode}</b></div>
+                 <div class="d-flex justify-content-between fs-5 mt-2"><span>Total</span><b>Rp ${formatRupiah(total)}</b></div>
+                 ${metodePembayaran === 'cash' ? `<div class="d-flex justify-content-between text-success"><span>Kembalian</span><b>Rp ${formatRupiah(bayar - total)}</b></div>` : ''}
+               </div>`,
+        tombol: '<i class="bi bi-check2-circle"></i> Ya, bayar',
+    }).then(ya => {
+        if (ya) kirimTransaksi(diskonPersen, bayar);
+    });
+}
+
+function kirimTransaksi(diskonPersen, bayar) {
+    Swal.fire({ title: 'Menyimpan transaksi...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), customClass: { popup: 'it-dialog' } });
 
     fetch('{{ route('transaksi.store') }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
         },
         body: JSON.stringify({
             items: keranjang.map(k => ({ produk_id: k.produk_id, qty: k.qty })),
@@ -220,10 +254,10 @@ function bayarTransaksi() {
         if (status === 200 && body.success) {
             window.location.href = body.redirect;
         } else {
-            alert(body.message || 'Terjadi kesalahan, silakan coba lagi.');
+            notif.gagal(body.message || 'Terjadi kesalahan, silakan coba lagi.', 'Transaksi gagal');
         }
     })
-    .catch(() => alert('Gagal menghubungi server.'));
+    .catch(() => notif.gagal('Periksa koneksi lalu coba lagi.', 'Gagal menghubungi server'));
 }
 
 // Filter kategori (dropdown)

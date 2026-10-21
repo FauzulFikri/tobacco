@@ -35,4 +35,27 @@ class Produk extends Model
     {
         return $query->whereColumn('stok', '<=', 'stok_minimum');
     }
+
+    /**
+     * Format daftar produk untuk pop-up peringatan stok (dipakai di layout & flash session).
+     */
+    public static function untukNotifikasi(iterable $produks): array
+    {
+        return collect($produks)->map(fn (Produk $p) => [
+            'nama' => $p->nama_produk,
+            'kode' => $p->kode_produk,
+            'stok' => (int) $p->stok,
+            'stok_minimum' => (int) $p->stok_minimum,
+        ])->values()->all();
+    }
+
+    /**
+     * Dari daftar id produk, ambil yang stoknya sekarang sudah di bawah/sama dengan minimum.
+     */
+    public static function yangMenipis(array $ids): array
+    {
+        return self::untukNotifikasi(
+            self::whereIn('id', $ids)->stokMenipis()->orderBy('stok')->get()
+        );
+    }
 }

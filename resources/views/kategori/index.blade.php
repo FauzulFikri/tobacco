@@ -21,7 +21,7 @@
                     <td>{{ $kat->produks_count }}</td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#modalEditKat{{ $kat->id }}"><i class="bi bi-pencil"></i></button>
-                        <form action="{{ route('kategori.destroy', $kat) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus kategori ini?')">
+                        <form action="{{ route('kategori.destroy', $kat) }}" method="POST" class="d-inline" data-konfirmasi-hapus="Kategori {{ $kat->nama_kategori }}" data-catatan-hapus="Kategori yang masih punya produk tidak bisa dihapus.">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
                         </form>

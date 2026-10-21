@@ -127,6 +127,13 @@ class TransaksiController extends Controller
             return $transaksi;
         });
 
+        // Pop-up di halaman nota: transaksi berhasil + peringatan jika ada stok yang jadi menipis
+        session()->flash('success', "Transaksi {$transaksi->no_transaksi} berhasil disimpan.");
+        $menipis = Produk::yangMenipis(collect($validated['items'])->pluck('produk_id')->all());
+        if ($menipis) {
+            session()->flash('peringatan_stok', $menipis);
+        }
+
         return response()->json([
             'success' => true,
             'no_transaksi' => $transaksi->no_transaksi,

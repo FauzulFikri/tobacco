@@ -42,7 +42,7 @@
                     </td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $produk->id }}"><i class="bi bi-pencil"></i></button>
-                        <form action="{{ route('produk.destroy', $produk) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus produk ini?')">
+                        <form action="{{ route('produk.destroy', $produk) }}" method="POST" class="d-inline" data-konfirmasi-hapus="Produk {{ $produk->nama_produk }}" data-catatan-hapus="Data penjualan produk ini di laporan juga ikut terhapus.">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
                         </form>

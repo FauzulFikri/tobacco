@@ -70,6 +70,53 @@
                 <i class="bi bi-list fs-4"></i>
             </button>
             <h5 class="mb-0">@yield('title', 'Dashboard')</h5>
+            <div class="d-flex align-items-center gap-2 gap-sm-3">
+            {{-- Lonceng pengingat stok menipis --}}
+            <div class="dropdown">
+                <button class="btn notif-bell {{ $notifStok->isNotEmpty() ? 'ada' : '' }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-label="Notifikasi stok">
+                    <i class="bi bi-bell{{ $notifStok->isNotEmpty() ? '-fill' : '' }}"></i>
+                    @if($notifStok->isNotEmpty())
+                        <span class="notif-badge">{{ $notifStok->count() > 9 ? '9+' : $notifStok->count() }}</span>
+                    @endif
+                </button>
+                <div class="dropdown-menu dropdown-menu-end notif-menu p-0 shadow">
+                    <div class="notif-head">
+                        <div class="fw-bold"><i class="bi bi-exclamation-triangle-fill text-warning"></i> Pengingat Stok</div>
+                        <div class="small opacity-75">{{ $notifStok->isNotEmpty() ? $notifStok->count().' produk perlu diisi ulang' : 'Semua stok aman' }}</div>
+                    </div>
+                    <div class="notif-body">
+                        @forelse($notifStok as $np)
+                            <div class="notif-item">
+                                <div class="notif-ikon {{ $np->stok <= 0 ? 'habis' : '' }}"><i class="bi {{ $np->stok <= 0 ? 'bi-x-octagon' : 'bi-box-seam' }}"></i></div>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="fw-semibold text-truncate">{{ $np->nama_produk }}</div>
+                                    <div class="small text-muted">
+                                        {{ $np->stok <= 0 ? 'Stok habis' : 'Sisa '.$np->stok }} &middot; min. {{ $np->stok_minimum }}
+                                    </div>
+                                </div>
+                                <span class="badge {{ $np->stok <= 0 ? 'bg-danger' : 'bg-warning text-dark' }}">{{ $np->stok <= 0 ? 'Habis' : 'Menipis' }}</span>
+                            </div>
+                        @empty
+                            <div class="text-center text-muted py-4 small">
+                                <i class="bi bi-check-circle fs-3 text-success d-block mb-1"></i>
+                                Tidak ada produk yang stoknya menipis
+                            </div>
+                        @endforelse
+                    </div>
+                    @if($notifStok->isNotEmpty())
+                    <div class="notif-foot">
+                        @if(auth()->user()->role === 'admin')
+                            <a href="{{ route('stok.index') }}" class="btn btn-emas btn-sm w-100"><i class="bi bi-box-arrow-in-down"></i> Catat Barang Masuk</a>
+                        @elseif(auth()->user()->role === 'pimpinan')
+                            <a href="{{ route('laporan.stok', ['status' => 'menipis']) }}" class="btn btn-emas btn-sm w-100"><i class="bi bi-boxes"></i> Lihat Laporan Stok</a>
+                        @else
+                            <div class="small text-muted text-center">Beri tahu admin untuk restok</div>
+                        @endif
+                    </div>
+                    @endif
+                </div>
+            </div>
+
             <a href="{{ route('akun.edit') }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark topbar-profile">
                 @if(auth()->user()->foto_profil)
                     <img src="{{ asset('storage/'.auth()->user()->foto_profil) }}" class="topbar-avatar" alt="Foto Profil">
@@ -83,15 +130,10 @@
                     <div class="text-muted" style="font-size:.75rem; text-transform:capitalize;">{{ auth()->user()->role }}</div>
                 </div>
             </a>
+            </div>
         </div>
 
         <div class="content-body">
-            @if(session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-            @if(session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
 
             @yield('content')
         </div>
@@ -99,6 +141,50 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script src="{{ asset('js/notifikasi.js') }}"></script>
+@php
+    $flashPopup = [
+        'sukses' => session('success'),
+        'gagal' => session('error'),
+        'validasi' => request()->routeIs('akun.*') ? [] : $errors->all(),
+        'stokTurun' => session('peringatan_stok', []),
+    ];
+@endphp
+<script>
+    // Pesan dari server (flash session) ditampilkan sebagai pop-up
+    document.addEventListener('DOMContentLoaded', function () {
+        const flash = @json($flashPopup);
+        const urlStok = @json(auth()->user()->role === 'admin' ? route('stok.index') : null);
+
+        // Urutan: hasil aksi dulu, lalu peringatan stok
+        let antrian = Promise.resolve();
+        if (flash.sukses) notif.sukses(flash.sukses);
+        if (flash.gagal) antrian = antrian.then(() => notif.gagal(flash.gagal));
+        if (flash.validasi.length) {
+            antrian = antrian.then(() => notif.gagal(
+                '<ul class="text-start mb-0 ps-3">' + flash.validasi.map(e => '<li>' + e.replace(/</g, '&lt;') + '</li>').join('') + '</ul>',
+                'Data belum valid'
+            ));
+        }
+        if (flash.stokTurun.length) {
+            antrian = antrian.then(() => new Promise(r => setTimeout(r, flash.sukses ? 900 : 0)))
+                .then(() => notif.peringatanStok(flash.stokTurun, {
+                    judul: 'Stok Mulai Menipis!',
+                    pengantar: 'Setelah aktivitas barusan, stok produk berikut sudah di bawah batas minimum:',
+                    urlStok,
+                }));
+        }
+        @if($tampilPopupStok)
+        antrian = antrian.then(() => new Promise(r => setTimeout(r, 600)))
+            .then(() => notif.peringatanStok(@json($notifStokJson), {
+                judul: 'Pengingat Stok Menipis',
+                pengantar: 'Ada {{ $notifStok->count() }} produk yang stoknya sudah mencapai batas minimum. Segera lakukan restok ya.',
+                urlStok,
+            }));
+        @endif
+    });
+</script>
 @yield('scripts')
 </body>
 </html>
